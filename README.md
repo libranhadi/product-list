@@ -32,7 +32,7 @@ Ensure that you have a MySQL database server running and create a database named
 1. Open your terminal or command prompt.
 2. Log in to MySQL:
    ```bash
-     mysql -u root -p
+    mysql -u root -p
     ```
 Enter your MySQL root password when prompted.
 
@@ -42,11 +42,11 @@ Enter your MySQL root password when prompted.
     ```
 4. Ensure you are logged into MySQL and have selected the database:
     ```bash
-        USE your_db;
+    USE your_db;
     ```
 5. Import the SQL script file:
     ```bash
-        mysql -u root -p your_db < path/to/product_list.sql
+    mysql -u root -p your_db < path/to/product_list.sql
     ```
 
 **Using GUI Tools**

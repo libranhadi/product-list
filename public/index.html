@@ -1,0 +1,187 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="styles/style.css"> -->
+    <link rel="stylesheet" href="styles/custom.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React
+
+        function App () {
+            const [products, setProducts] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [currentPage, setCurrentPage] = useState(1);
+            const [totalPages, setTotalPages] = useState(1);
+            const [pageSize, setPageSize] = useState(10); 
+            const [searchQuery, setSearchQuery] = useState('');
+            const inputRef = useRef(null);
+
+            const renderPagination = () => {
+                let pages = [];
+                const maxPagesToShow = 10;
+                const half = Math.floor(maxPagesToShow / 2);
+
+                if (totalPages <= maxPagesToShow) {
+                    pages = [...Array(totalPages).keys()].map(i => i + 1);
+                } else {
+                    if (currentPage <= half) {
+                        pages = [...Array(maxPagesToShow).keys()].map(i => i + 1);
+                        pages.push('...');
+                        pages.push(totalPages);
+                    } else if (currentPage >= totalPages - half) {
+                        pages.push(1);
+                        pages.push('...');
+                        pages = [...Array(maxPagesToShow - 1).keys()].map(i => totalPages - maxPagesToShow + 2 + i);
+                    } else {
+                        pages.push(1);
+                        pages.push('...');
+                        pages = [...Array(maxPagesToShow - 2).keys()].map(i => currentPage - half + i);
+                        pages.push('...');
+                        pages.push(totalPages);
+                    }
+                }
+
+                return (
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${currentPage === 1 ? 'text-gray-500 cursor-not-allowed' : 'text-blue-500 hover:bg-blue-50'}`}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </button>
+                        {pages.map((page, index) => (
+                            page === '...' ? (
+                                <span key={`ellipsis-${index}`} className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500">...</span>
+                            ) : (
+                                <button
+                                    key={page}
+                                    onClick={() => handlePageChange(page)}
+                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${currentPage === page ? 'bg-blue-500 text-white' : 'text-blue-500 hover:bg-blue-50'}`}
+                                >
+                                    {page}
+                                </button>
+                            )
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${currentPage === totalPages ? 'text-gray-500 cursor-not-allowed' : 'text-blue-500 hover:bg-blue-50'}`}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </button>
+                    </nav>
+                );
+            };
+
+            const fetchProducts = async () => {
+                setLoading(true);
+                try {
+                    const response = await fetch(`http:/api/products?page=${currentPage}&pageSize=${pageSize}&queryParam=${searchQuery}`);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    setProducts(data.products);
+                    setTotalPages(data.totalPages);
+                } catch (error) {
+                    setLoading(false);
+                    console.error('Error fetching products:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+
+            useEffect(() => {
+                const delayDebounceFn = setTimeout(() => {
+                    fetchProducts();
+                }, 1000); 
+                return () => clearTimeout(delayDebounceFn); 
+            }, [currentPage, pageSize, searchQuery]);
+
+            useEffect(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, []);
+
+            const handleSearchChange = (event) => {
+                if (loading) {
+                    return
+                }
+               
+                setSearchQuery(event.target.value);
+                setCurrentPage(1);
+
+            };
+
+            const handlePageChange = (pageNumber) => {
+                if (pageNumber > 0 && pageNumber <= totalPages) {
+                    setCurrentPage(pageNumber);
+                }
+            };
+
+            if (loading) {
+                return <div className="text-center py-10">Loading...</div>;
+            }
+
+            return <>
+                <section id="search-header" className="flex flex-col items-center">
+                    <div id="search-background" className="w-full h-20 bg-gradient-to-r from-sky-100 to-pink-100"></div>
+                    <div id="search-wrapper" className="mx-auto relative inline-flex items-center gap-3 px-7 h-14 bg-white -translate-y-1/2 overflow-hidden rounded-lg shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="size-4 stroke-neutral-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                        <input type="text" className="input-search h-full bg-white focus-within:outline-0 text-sm placeholder:text-sm text-neutral-600" placeholder="Search..." 
+                            value={searchQuery}
+                            ref={inputRef}
+                            onChange={handleSearchChange}
+                        />
+                    </div>
+                </section>
+                
+                <section id="products" className="container px-4 sm:0 mt-10 mx-auto mb-20">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {products && products.length > 0 ? (
+                                    products.map((product, index) => (
+                                        <tr key={index}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.brand}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.model}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.price.trim()}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">No Products Availabale</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="flex justify-center mt-6">
+                        {renderPagination()}
+                    </div>
+                </section>
+            </>
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>

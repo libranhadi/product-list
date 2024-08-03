@@ -1,0 +1,19 @@
+#search-wrapper {
+    -webkit-box-shadow: 0px 20px 32px -10px rgba(0, 0, 0, 0.15);
+    -moz-box-shadow: 0px 20px 32px -10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 20px 32px -10px rgba(0, 0, 0, 0.15);
+}
+
+.input-search {
+    width: 260px;
+}
+
+.aspect-card {
+    aspect-ratio: 5/4;
+}
+
+@media only screen and (max-width: 640px) {
+    .aspect-card {
+        aspect-ratio: 6/4;
+    }
+}

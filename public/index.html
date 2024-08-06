@@ -1,8 +1,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="styles/style.css"> -->
-    <link rel="stylesheet" href="styles/custom.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
@@ -10,9 +8,8 @@
     <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React
+        const { useState, useEffect } = React
 
         function App () {
             const [products, setProducts] = useState([]);
@@ -21,7 +18,6 @@
             const [totalPages, setTotalPages] = useState(1);
             const [pageSize, setPageSize] = useState(10); 
             const [searchQuery, setSearchQuery] = useState('');
-            const inputRef = useRef(null);
 
             const renderPagination = () => {
                 let pages = [];
@@ -84,7 +80,12 @@
             const fetchProducts = async () => {
                 setLoading(true);
                 try {
-                    const response = await fetch(`http:/api/products?page=${currentPage}&pageSize=${pageSize}&queryParam=${searchQuery}`);
+                    const response = await fetch(`http:/api/products?page=${currentPage}&pageSize=${pageSize}&queryParam=${searchQuery}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
@@ -107,11 +108,6 @@
                 return () => clearTimeout(delayDebounceFn); 
             }, [currentPage, pageSize, searchQuery]);
 
-            useEffect(() => {
-                if (inputRef.current) {
-                    inputRef.current.focus();
-                }
-            }, []);
 
             const handleSearchChange = (event) => {
                 if (loading) {
@@ -142,7 +138,6 @@
                         </svg>
                         <input type="text" className="input-search h-full bg-white focus-within:outline-0 text-sm placeholder:text-sm text-neutral-600" placeholder="Search..." 
                             value={searchQuery}
-                            ref={inputRef}
                             onChange={handleSearchChange}
                         />
                     </div>
@@ -155,6 +150,8 @@
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Screen Size</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Color</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                                 </tr>
                             </thead>
@@ -164,6 +161,8 @@
                                         <tr key={index}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.brand}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.model}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.screen_size}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.color}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${product.price.trim()}</td>
                                         </tr>
                                     ))

@@ -36,7 +36,6 @@ export const getProducts = async (req: Request, res: Response) => {
       totalItems,
       totalPages,
       currentPage: page,
-      s : pageSize
     })
   } catch (error) {
     console.error('Error fetching products:', error);
